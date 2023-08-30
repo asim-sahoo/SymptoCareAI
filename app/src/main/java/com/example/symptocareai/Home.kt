@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.auth.FirebaseAuth
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.data.DataType
@@ -13,10 +14,14 @@ import com.google.android.gms.fitness.request.DataReadRequest
 import java.util.concurrent.TimeUnit
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.fitness.FitnessOptions
+import com.google.android.gms.tasks.Task
 
 class Home : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
+    private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var fitnessOptions: FitnessOptions
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 101
 
@@ -31,45 +36,54 @@ class Home : AppCompatActivity() {
 
         findViewById<TextView>(R.id.textView).text = email + "\n" + displayName
 
+        // Initialize GoogleSignInClient
+        googleSignInClient = GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN)
+
         // Initialize fitnessOptions
         fitnessOptions = FitnessOptions.builder()
             .addDataType(DataType.TYPE_STEP_COUNT_DELTA)
             .build()
 
-        val account = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
-
-        val hasPermissions = GoogleSignIn.hasPermissions(account, fitnessOptions)
-
-        if (!hasPermissions) {
-            GoogleSignIn.requestPermissions(
-                this,
-                GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
-                account,
-                fitnessOptions
-            )
-        } else {
-            // Permission already granted, read step count data
+        val account = GoogleSignIn.getLastSignedInAccount(this)
+        if (account != null) {
+            // User is already signed in, read step count data
             readStepCountData(account)
+        } else {
+            // Request permissions
+            val signInIntent = googleSignInClient.signInIntent
+            launcher.launch(signInIntent)
         }
 
         // Sign out button
         findViewById<Button>(R.id.googleSignOutButton).setOnClickListener {
             auth.signOut()
-            startActivity(Intent(this, Login::class.java))
+            googleSignInClient.signOut() // Also sign out from Google Sign-In
+
+            // Clear activity stack and start Login activity
+            val loginIntent = Intent(this, Login::class.java)
+            loginIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(loginIntent)
         }
     }
 
     // Handle permission result
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == GOOGLE_FIT_PERMISSIONS_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                // Permission granted, read step count data
-                val account = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+        result ->
+        if (result.resultCode == RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            handleResults(task)
+        }
+    }
+
+    private fun handleResults(task: Task<GoogleSignInAccount>) {
+        if (task.isSuccessful) {
+            val account: GoogleSignInAccount? = task.result
+            if (account != null) {
+                // User has signed in, read step count data
                 readStepCountData(account)
-            } else {
-                // Permission denied
             }
+        } else {
+            // Handle sign-in failure
         }
     }
 
