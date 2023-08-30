@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "397487459589",
+    "project_id": "symptocare-2023",
+    "storage_bucket": "symptocare-2023.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397487459589:android:dcaabc2094c2665058bb6c",
+        "android_client_info": {
+          "package_name": "com.example.symptocareai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "397487459589-admq86jd8vu90eclo17j57lebjejgfd4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.symptocareai",
+            "certificate_hash": "fc8008799c562d06c2b804179a8ede80a6f48442"
+          }
+        },
+        {
+          "client_id": "397487459589-6bcm08psak1deskd3t1tsobvin1hopfv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVD_DCwohg5Yd2ifTd1iK19NKFtDllQh8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "397487459589-6bcm08psak1deskd3t1tsobvin1hopfv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

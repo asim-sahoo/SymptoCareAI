@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">SymptoCareAI</string>
+    <string name="email">email</string>
+    <string name="password">password</string>
+    <string name="register">Register</string>
+    <string name="email_register">Email</string>
+    <string name="password_register">Password</string>
+    <string name="btn_register">register</string>
+</resources>
