@@ -7,27 +7,46 @@
     android:padding="16dp"
     android:background="@android:color/white">
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Text" />
+
+    <!-- Display Google Fit data here -->
+    <TextView
+        android:id="@+id/stepCountTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Step Count: "
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/stepCountValueTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/stepCountTextView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="4dp"
+        android:text=""
+        android:textSize="16sp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/googleSignOutButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="16dp"
-
         android:layout_marginTop="32dp"
         android:layout_marginBottom="6dp"
         android:backgroundTint="@color/colorPrimary"
         android:text="Sign Out"
         android:textColor="@android:color/white"
         tools:ignore="VisualLintButtonSize" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="TextView" />
 
 </RelativeLayout>
