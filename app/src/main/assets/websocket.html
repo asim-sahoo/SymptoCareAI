@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="/Static/chat.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts Link For Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+</head>
+<body>
+<div class="chatbot">
+    <ul class="chatbox">
+        <li class="chat incoming">
+            <p>How can i help you today?</p>
+        </li>
+        <li class="chat outgoing">
+
+        </li>
+    </ul>
+    <div class="chat-input">
+        <textarea placeholder="Type a message..." required></textarea>
+        <button><span id="send-btn" class="material-icons-rounded">send</span></button>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+        $(document).ready(function () {
+            const chatbox = $(".chatbox");
+            const chatInput = $(".chat-input textarea");
+            const sendChatBtn = $(".chat-input span");
+
+            let userMessage = null;
+            const inputInitHeight = chatInput[0].scrollHeight;
+            //dont tounch this
+            const createChatLi = (message, className) => {
+                const chatLi = $("<li>").addClass("chat").addClass(className);
+                let chatContent = className === "outgoing"
+                    ? $('<p>').text(message)
+                    : $('<span>').addClass("material-symbols-outlined").text("smart_toy").add($('<p>').text(message));
+                chatLi.html(chatContent);
+                return chatLi;
+            }
+
+
+            const handleChat = () => {
+                userMessage = chatInput.val().trim();
+                if (!userMessage) return;
+
+                chatInput.val("");
+                chatInput.css("height", `${inputInitHeight}px`);
+
+                chatbox.append(createChatLi(userMessage, "outgoing"));
+                chatbox.scrollTop(chatbox[0].scrollHeight);
+
+                setTimeout(() => {
+                    const incomingChatLi = createChatLi("Thinking...", "incoming");
+                    chatbox.append(incomingChatLi);
+                    chatbox.scrollTop(chatbox[0].scrollHeight);
+                    generateResponse(incomingChatLi,userMessage);
+                }, 600);
+            }
+
+
+            const generateResponse = (chatElement, userMessage) => {
+                // Create a WebSocket connection
+
+                const ws = new WebSocket('wss://public.backend.medisearch.io:443/ws/medichat/api');
+                function generateID() {
+                    var id = '';
+                    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                    for (var i = 0; i < 32; i++) {
+                        id += characters.charAt(Math.floor(Math.random() * characters.length));
+                    }
+                    return id;
+                }
+
+                // Generate the conversation ID
+                const conversation_id = generateID()
+
+                // Prepare the userConversation object with the user's message
+                const userConversation = {
+                    event: "user_message",
+                    conversation: [userMessage],
+                    key: "9c1cc986-3041-456c-9318-565058ed8f7b", // Replace with your API key
+                    id: conversation_id, // Use the same conversation ID generated earlier
+                    settings: {
+                        language: "English"
+                    }
+                };
+                // WebSocket message handler
+                ws.onmessage = function (event) {
+                    const strData = event.data.toString('utf8');
+                    const jsonData = JSON.parse(strData);
+                    const responseMessage = jsonData.text;
+                    if (jsonData.event === "articles") {
+                        console.log("Got articles");
+                        // Handle articles response here
+                    } else if (jsonData.event === "llm_response") {
+                        console.log("Got llm response");
+                        chatbox.find('.incoming').last().remove();
+                        chatbox.append(createChatLi(responseMessage, "incoming")); // Add the response to the chatbox
+                        chatbox.scrollTop(chatbox[0].scrollHeight); // Scroll to the bottom
+                    } else if (jsonData.event === "error") {
+                        console.log("Got error");
+                    }
+                };
+
+                // WebSocket is open, send the userConversation
+                ws.onopen = function () {
+                    ws.send(JSON.stringify(userConversation));
+                };
+            };
+            chatInput.on("input", () => {
+                chatInput.css("height", `${inputInitHeight}px`);
+                chatInput.css("height", `${chatInput[0].scrollHeight}px`);
+            });
+
+            chatInput.on("keydown", (e) => {
+                if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+                    e.preventDefault();
+                    handleChat();
+                }
+            });
+            sendChatBtn.on("click", handleChat);
+        });
+    </script>
+</body>
+</html>

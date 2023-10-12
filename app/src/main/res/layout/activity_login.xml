@@ -10,10 +10,13 @@
 
     <ImageView
         android:id="@+id/appLogo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="265dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="100dp"
         app:srcCompat="@drawable/logo" />
 
     <TextView
@@ -22,7 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/appLogo"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="150dp"
+        android:fontFamily="@font/poppins_bold"
         android:text="SymptoCareAI"
         android:textColor="@color/colorPrimary"
         android:textSize="24sp"
