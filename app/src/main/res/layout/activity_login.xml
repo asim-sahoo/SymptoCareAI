@@ -8,6 +8,7 @@
     android:background="@android:color/white"
     tools:context=".Login">
 
+    <!-- App Logo -->
     <ImageView
         android:id="@+id/appLogo"
         android:layout_width="wrap_content"
@@ -19,6 +20,7 @@
         android:layout_marginTop="100dp"
         app:srcCompat="@drawable/logo" />
 
+    <!-- App Name -->
     <TextView
         android:id="@+id/appName"
         android:layout_width="wrap_content"
@@ -32,6 +34,7 @@
         android:textSize="24sp"
         android:textStyle="bold" />
 
+    <!-- Sign in with Google Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/googleSignInButton"
         android:layout_width="match_parent"
@@ -44,7 +47,6 @@
         app:iconGravity="start"
         android:layout_marginHorizontal="16dp"
         android:backgroundTint="@color/colorPrimary"
-
         android:text="Sign in with Google"
         android:textColor="@android:color/white">
     </com.google.android.material.button.MaterialButton>

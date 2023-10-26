@@ -7,6 +7,7 @@
     android:background="#4B4A4A"
     android:padding="15dp">
 
+    <!-- Sign Out Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/googleSignOutButton"
         android:layout_width="wrap_content"
@@ -22,6 +23,7 @@
         app:elevation="0dp"
         tools:ignore="VisualLintButtonSize" />
 
+    <!-- App Name -->
     <TextView
         android:id="@+id/homeAppName"
         android:layout_width="wrap_content"
@@ -35,6 +37,7 @@
         android:textColor="#FFFFFF"
         android:textSize="27sp" />
 
+    <!-- "AI" Label -->
     <TextView
         android:id="@+id/homeAppNameAI"
         android:layout_width="wrap_content"
@@ -46,6 +49,7 @@
         android:textColor="#71AC9A"
         android:textSize="27sp" />
 
+    <!-- Chat Box (CardView) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/chatBox"
         android:layout_width="match_parent"
@@ -58,6 +62,7 @@
         app:cardBackgroundColor="#626C68"
         app:cardCornerRadius="25dp">
 
+        <!-- WebView for Chat Display -->
         <WebView
             android:id="@+id/webViewChat"
             android:layout_width="match_parent"

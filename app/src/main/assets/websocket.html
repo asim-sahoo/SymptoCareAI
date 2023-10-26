@@ -114,115 +114,121 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-        $(document).ready(function () {
-            const chatbox = $(".chatbox");
-            const chatInput = $(".chat-input textarea");
-            const sendChatBtn = $(".chat-input span");
+$(document).ready(function () {
+    // Select chatbox, chat input field, and send button
+    const chatbox = $(".chatbox");
+    const chatInput = $(".chat-input textarea");
+    const sendChatBtn = $(".chat-input span");
 
-            let userMessage = null;
-            const inputInitHeight = chatInput[0].scrollHeight;
-            //dont tounch this
-            const createChatLi = (message, className) => {
-                const chatLi = $("<li>").addClass("chat").addClass(className);
-                let chatContent = className === "outgoing"
-                    ? $('<p>').text(message)
-                    : $('<span>').addClass("material-symbols-outlined").text("smart_toy").add($('<p>').text(message));
-                chatLi.html(chatContent);
-                return chatLi;
+    let userMessage = null;
+    const inputInitHeight = chatInput[0].scrollHeight;
+
+    // Function to create a chat message element
+    const createChatLi = (message, className) => {
+        const chatLi = $("<li>").addClass("chat").addClass(className);
+        let chatContent = className === "outgoing"
+            ? $('<p>').text(message)
+            : $('<span>').addClass("material-symbols-outlined").text("smart_toy").add($('<p>').text(message));
+        chatLi.html(chatContent);
+        return chatLi;
+    }
+
+    // Function to handle user messages
+    const handleChat = () => {
+        userMessage = chatInput.val().trim();
+        if (!userMessage) return;
+
+        chatInput.val("");
+        chatInput.css("height", `${inputInitHeight}px`);
+
+        chatbox.append(createChatLi(userMessage, "outgoing"));
+        chatbox.scrollTop(chatbox[0].scrollHeight);
+
+        setTimeout(() => {
+            const incomingChatLi = createChatLi("Thinking...", "incoming");
+            chatbox.append(incomingChatLi);
+            chatbox.scrollTop(chatbox[0].scrollHeight);
+            generateResponse(incomingChatLi, userMessage);
+        }, 600);
+    }
+
+    // Function to generate responses and communicate with a WebSocket server
+    const generateResponse = (chatElement, userMessage) => {
+        // Create a WebSocket connection
+        const ws = new WebSocket('wss://public.backend.medisearch.io:443/ws/medichat/api');
+
+        // Function to generate a unique conversation ID
+        function generateID() {
+            var id = '';
+            var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            for (var i = 0; i < 32; i++) {
+                id += characters.charAt(Math.floor(Math.random() * characters.length));
             }
+            return id;
+        }
 
-            const handleChat = () => {
-                userMessage = chatInput.val().trim();
-                if (!userMessage) return;
+        // Generate the conversation ID
+        const conversation_id = generateID();
 
-                chatInput.val("");
-                chatInput.css("height", `${inputInitHeight}px`);
-
-                chatbox.append(createChatLi(userMessage, "outgoing"));
-                chatbox.scrollTop(chatbox[0].scrollHeight);
-
-                setTimeout(() => {
-                    const incomingChatLi = createChatLi("Thinking...", "incoming");
-                    chatbox.append(incomingChatLi);
-                    chatbox.scrollTop(chatbox[0].scrollHeight);
-                    generateResponse(incomingChatLi,userMessage);
-                }, 600);
+        // Prepare the userConversation object with the user's message
+        const userConversation = {
+            event: "user_message",
+            conversation: [userMessage],
+            key: "9c1cc986-3041-456c-9318-565058ed8f7b", // Replace with your API key
+            id: conversation_id, // Use the same conversation ID generated earlier
+            settings: {
+                language: "English"
             }
+        };
 
-
-            const generateResponse = (chatElement, userMessage) => {
-                // Create a WebSocket connection
-
-                const ws = new WebSocket('wss://public.backend.medisearch.io:443/ws/medichat/api');
-                function generateID() {
-                    var id = '';
-                    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                    for (var i = 0; i < 32; i++) {
-                        id += characters.charAt(Math.floor(Math.random() * characters.length));
-                    }
-                    return id;
+        // WebSocket message handler
+        ws.onmessage = function (event) {
+            const strData = event.data.toString('utf8');
+            const jsonData = JSON.parse(strData);
+            const responseMessage = jsonData.text;
+            if (jsonData.event === "articles") {
+                console.log("Got articles");
+                chatbox.find('.incoming'); // Remove the "Thinking..." message
+                chatbox.append(createChatLi("Here are some articles that might help:", "incoming")); // Add the response to the chatbox
+                for (let i = 0; i < jsonData.articles.length; i++) {
+                    const article = jsonData.articles[i];
+                    const articleLink = article.url;
+                    chatbox.append(createChatLi(articleLink, "incoming"));
                 }
+                chatbox.scrollTop(chatbox[0].scrollHeight); // Scroll to the bottom
+            } else if (jsonData.event === "llm_response") {
+                console.log("Got llm response");
+                chatbox.find('.incoming').last().remove(); // Remove the "Thinking..." message
+                chatbox.append(createChatLi(responseMessage, "incoming")); // Add the response to the chatbox
+                chatbox.scrollTop(chatbox[0].scrollHeight); // Scroll to the bottom
+            } else if (jsonData.event === "error") {
+                console.log("Got error");
+            }
+        };
 
-                // Generate the conversation ID
-                const conversation_id = generateID()
+        // WebSocket is open, send the userConversation
+        ws.onopen = function () {
+            ws.send(JSON.stringify(userConversation));
+        };
+    }
 
-                // Prepare the userConversation object with the user's message
-                const userConversation = {
-                    event: "user_message",
-                    conversation: [userMessage],
-                    key: "9c1cc986-3041-456c-9318-565058ed8f7b", // Replace with your API key
-                    id: conversation_id, // Use the same conversation ID generated earlier
-                    settings: {
-                        language: "English"
-                    }
-                };
-                // WebSocket message handler
-                ws.onmessage = function (event) {
-                    const strData = event.data.toString('utf8');
-                    const jsonData = JSON.parse(strData);
-                    const responseMessage = jsonData.text;
-                    if (jsonData.event === "articles") {
-                        console.log("Got articles");
-                        chatbox.find('.incoming'); // Remove the "Thinking..." message
-                        chatbox.append(createChatLi("Here are some articles that might help:", "incoming")); // Add the response to the chatbox
-                        for (let i = 0; i < jsonData.articles.length; i++) {
-                            const article = jsonData.articles[i];
-                            const articleLink =article.url;
-                            chatbox.append(createChatLi(articleLink, "incoming"));
-                    }
-                    chatbox.scrollTop(chatbox[0].scrollHeight); // Scroll to the bottom
-                    } else if (jsonData.event === "llm_response") {
-                        console.log("Got llm response");
-                        chatbox.find('.incoming').last().remove(); // Remove the "Thinking..." message
-                        chatbox.append(createChatLi(responseMessage, "incoming")); // Add the response to the chatbox
-                        chatbox.scrollTop(chatbox[0].scrollHeight); // Scroll to the bottom
-                    } else if (jsonData.event === "error") {
-                        console.log("Got error");
-                    }
-                };
+    // Adjust the height of the chat input field as the user types
+    chatInput.on("input", () => {
+        chatInput.css("height", `${inputInitHeight}px`);
+        chatInput.css("height", `${chatInput[0].scrollHeight}px`);
+    });
 
-                // WebSocket is open, send the userConversation
-                ws.onopen = function () {
-                    ws.send(JSON.stringify(userConversation));
-                };
-            };
+    // Handle sending a message when the Enter key is pressed
+    chatInput.on("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+            e.preventDefault();
+            handleChat();
+        }
+    });
 
-
-
-            chatInput.on("input", () => {
-                chatInput.css("height", `${inputInitHeight}px`);
-                chatInput.css("height", `${chatInput[0].scrollHeight}px`);
-            });
-
-            chatInput.on("keydown", (e) => {
-                if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
-                    e.preventDefault();
-                    handleChat();
-                }
-            });
-
-            sendChatBtn.on("click", handleChat);
-        });
+    // Handle sending a message when the send button is clicked
+    sendChatBtn.on("click", handleChat);
+});
     </script>
 </body>
 </html>

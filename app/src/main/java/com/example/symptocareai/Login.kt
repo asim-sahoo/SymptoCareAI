@@ -42,6 +42,9 @@ class Login : AppCompatActivity() {
         }
     }
 
+    /**
+     * Initiates the Google Sign-In process by launching the Google Sign-In intent.
+     */
     private fun signInGoogle() {
         // Check if the user is already signed in and clear cached account if needed
         val signedInAccount = GoogleSignIn.getLastSignedInAccount(this)
@@ -54,12 +57,19 @@ class Login : AppCompatActivity() {
         launcher.launch(signInIntent)
     }
 
+    // Registers an activity result launcher for handling the Google Sign-In result
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             handleResults(task)
         }
     }
+
+    /**
+     * Handles the Google Sign-In results.
+     *
+     * @param task Task containing the GoogleSignInAccount
+     */
     private fun handleResults(task: Task<GoogleSignInAccount>) {
         if (task.isSuccessful) {
             val account: GoogleSignInAccount? = task.result
@@ -72,6 +82,9 @@ class Login : AppCompatActivity() {
         }
     }
 
+    /**
+     * Signs in to Firebase using the Google account's credentials.
+     */
     private fun updateUI(account: GoogleSignInAccount) {
         // Create Google Auth credentials using the account's ID token
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
